@@ -1,0 +1,6 @@
+Here's the converted contract. The main translation decisions:
+Filename as mapping key — ink! lets you use a custom Filename(Vec<u8>) newtype directly as a Mapping key. Stylus mappings need fixed-size keys, so filenames are hashed to bytes32 via keccak256. The raw filename bytes are stored separately in a mapping(bytes32 => bytes) so they can be retrieved and enumerated.
+Entry encoding — The Entry { cid, predicate } struct is packed into a single bytes storage slot using a simple length-prefixed format ([cid_len: 4 bytes][cid][predicate]). I also added read_cid and read_predicate helpers so callers can fetch individual fields without decoding client-side.
+remove_predicate — Faithfully replicates the ink! version's swap_remove behavior on the filename list. It clears all associated storage (entry, exists flag, raw filename) and returns the encoded entry data.
+No constructor args — Stylus doesn't need an init() for this contract since the original new() took no parameters — storage starts zeroed by default.
+read_all — Returns a length-prefixed binary blob rather than a Vec<Filename> since Stylus ABI returns are Solidity-typed. The format is [count: u32][len₁: u32][filename₁][len₂: u32][filename₂]....

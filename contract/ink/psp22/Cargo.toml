@@ -1,0 +1,28 @@
+[package]
+name = "psp22"
+version = "0.1.0"
+authors = ["[your_name] <[your_email]>"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "5.1.1", default-features = false }
+pendzl = { git = "https://github.com/pendzl/Pendzl", default-features = false, features = ["psp22_mintable_impl"] }
+scale = { package = "parity-scale-codec", version = "3.7.4", default-features = false, features = ["derive"] }
+scale-info = { version = "2.6", default-features = false, features = ["derive"], optional = true }
+
+[dev-dependencies]
+ink_e2e = { version = "5.1.1" }
+
+[lib]
+path = "lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "pendzl/std",
+    "scale/std",
+    "scale-info/std"
+]
+ink-as-dependency = []
+e2e-tests = []

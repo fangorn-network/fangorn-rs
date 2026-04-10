@@ -1,0 +1,7 @@
+Here's the converted Stylus contract. Here are the key differences from the ink! version:
+Storage model — Stylus uses sol_storage! with Solidity-compatible types (mapping, bytes32[], bytes, etc.) instead of ink's Mapping and Vec. Since Stylus mappings can't be checked for "contains" cheaply, I added separate request_exists and fulfilled_exists boolean mappings.
+Composite mapping keys — ink! supports tuple keys like (Vec<u8>, AccountId) natively. Stylus doesn't, so the contract derives a composite key via keccak256(request_id ++ worker_address) and uses a flat mapping(bytes32 => bytes).
+Events — Declared via the sol! macro and emitted with evm::log(), producing Solidity ABI-compatible logs that standard EVM tooling (ethers, viem, etc.) can decode.
+Hashing — Uses crypto::keccak (keccak256) instead of ink's Blake2x256, since keccak is the native EVM hash and is gas-subsidized on Stylus.
+Initialization — Stylus doesn't have constructors that take arguments, so the workers are set via an init() function that can only be called once.
+Types — Request IDs are FixedBytes<32> (bytes32) instead of Vec<u8>, and worker addresses are Address (the standard EVM 20-byte address) instead of ink's AccountId.

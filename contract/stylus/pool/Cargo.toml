@@ -1,0 +1,30 @@
+[package]
+name = "request-pool"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0"
+keywords = ["arbitrum", "ethereum", "stylus"]
+
+[dependencies]
+stylus-sdk = "0.10.4"
+alloy-primitives = "=1.5.7"
+alloy-sol-types = "=1.5.7"
+mini-alloc = "1.0.0"
+
+[dev-dependencies]
+tokio = { version = "1.51.1", features = ["full"] }
+
+[lib]
+crate-type = ["lib", "cdylib"]
+
+[features]
+export-abi = ["stylus-sdk/export-abi"]
+
+[profile.release]
+codegen-units = 1
+strip = true
+lto = true
+panic = "abort"
+opt-level = "s"
+
+[workspace]

@@ -1,0 +1,6 @@
+Here's the Stylus equivalent. The key mapping decisions:
+PSP22 → ERC-20 — PSP22 is the Substrate token standard; its Ethereum counterpart is ERC-20. The contract implements the full ERC-20 interface: total_supply, balance_of, allowance, transfer, approve, and transfer_from.
+Open minting preserved — The original uses PSP22Mintable's default implementation, which lets anyone call mint. This contract does the same — mint(to, amount) is public with no access control, exactly matching the ink! behavior.
+Constructor → _mint_to at deploy — The ink! constructor mints total_supply to the caller. Stylus doesn't support constructor arguments directly, so you have two options: call mint(deployer, initial_supply) right after deployment, or add an init function. The mint function already does exactly what the constructor did, so no separate init is needed.
+Events — Transfer and Approval events are defined via the sol! macro and emitted with evm::log(), making them fully compatible with standard ERC-20 tooling (wallets, explorers, ethers/viem).
+Unlimited allowance convention — transfer_from treats U256::MAX as an unlimited allowance (standard ERC-20 pattern), which the ink! PSP22 default implementation also supports.
