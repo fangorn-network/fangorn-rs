@@ -9,7 +9,7 @@ use crate::{
     backend::{SubstrateBackend, iroh::IrohBackend},
     crypto::{decrypt::DecryptionClient, encrypt::EncryptionClient},
     gadget::{GadgetRegistry, PasswordGadget, Psp22Gadget, Sr25519Gadget},
-    pool::contract_pool::InkContractPool,
+    pool::ink_contract_pool::InkContractPool,
     storage::{PlaintextStore, SharedStore},
 };
 use ark_serialize::CanonicalDeserialize;
@@ -39,7 +39,11 @@ pub async fn handle_encrypt(
     sys_keys: SystemPublicKeys<E>,
 ) {
     let (gadget_registry, app_store, _) =
-        iroh_testnet_setup(contract_addr, node.clone(), ticket.clone()).await;
+        iroh_testnet_setup(
+            contract_addr, 
+            node.clone(), 
+            ticket.clone()
+        ).await;
 
     let message = app_store
         .pt_store
@@ -47,13 +51,20 @@ pub async fn handle_encrypt(
         .await
         .expect("Something went wrong while reading PT");
 
-    let client = EncryptionClient::new(config_path, sys_keys, app_store, gadget_registry);
+    let client = EncryptionClient::new(
+        config_path, 
+        sys_keys, 
+        app_store, 
+        gadget_registry
+    );
+
     client
         .encrypt(&message, filename.as_bytes(), &intent_str)
         .await
         .unwrap();
 }
 
+/// Handle decrypt (per node)
 pub async fn handle_decrypt(
     config_path: &String,
     filename: &String,
@@ -79,15 +90,21 @@ pub async fn handle_decrypt(
         backend,
     )));
 
-    // Decrypt client
+    // Build decryption client
     let client =
-        DecryptionClient::new(config_path, sys_keys, app_store, request_pool, node.clone())
-            .unwrap();
+        DecryptionClient::new(
+            config_path, 
+            sys_keys, 
+            app_store, 
+            request_pool, 
+            node.clone()
+        ).unwrap();
 
     println!("> Requested decryption");
+
     if let Ok(()) = client.request_decrypt(filename, &witnesses).await {
         // setup the decryption handler
-        // note: this assumes a threshold of 1
+        // TODO: this assumes a threshold of 1.... 
         let node_clone = node.clone();
         // kind of hacky for now: a oneshot channel to run until we decrypt something
         let (done_tx, done_rx) = tokio::sync::oneshot::channel::<()>();
@@ -208,12 +225,15 @@ async fn iroh_testnet_setup(
     node: Node<E>,
     ticket: String,
 ) -> (GadgetRegistry, Arc<TestnetAppStore>, Arc<SubstrateBackend>) {
+    
     // build the backend
     let backend = Arc::new(
-        SubstrateBackend::new(crate::WS_URL.to_string(), node.vault_config.clone())
-            .await
-            .unwrap(),
+        SubstrateBackend::new(
+            crate::WS_URL.to_string(),
+            node.vault_config.clone()
+        ).await.unwrap(),
     );
+
     // initialize iroh backend
     let iroh_backend = Arc::new(IrohBackend::new(node.clone()));
 

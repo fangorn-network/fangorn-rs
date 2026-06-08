@@ -78,7 +78,7 @@ impl SubstrateBackend {
             vault_config.vault_pswd.clone().unwrap(),
             vault_config.substrate_name.clone(),
             vault_config.substrate_pswd.clone().unwrap(),
-        );
+        );  
         let signer = PolkadotSigner::new(sr25519_vault);
         Ok(Self { client, signer })
     }

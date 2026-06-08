@@ -25,11 +25,10 @@ impl Gadget for Psp22Gadget {
     // witness = account pubkey (32 bytes)
     // statement = (contract_address, minimum_balance)
     async fn verify_witness(&self, witness: &[u8], statement: &[u8]) -> Result<bool, IntentError> {
-        println!("verifying the witness");
 
         let pubkey_string: String =
             String::from_utf8(witness.to_vec()).expect("Invalid UTF-8 sequence");
-        println!("WE DECODED THE pubkey: {:?}", pubkey_string.clone());
+
         let witness = crate::utils::decode_public_key(&pubkey_string);
 
         if witness.len() != 32 {

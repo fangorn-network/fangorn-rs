@@ -32,7 +32,8 @@ pub enum KeyVaultError {
 }
 
 // TODO: Password management is somewhat of a mess. We either accept passwords via the command line or they're hard coded within every method
-// that interacts with the vault. For production, these should be provided in some other manner, perhaps via ENV variables.
+// that interacts with the vault. 
+// For production, these should be provided in some other manner, perhaps via ENV variables.
 pub trait KeyVault {
     /// The public key type
     type Public: Clone + PartialEq + std::fmt::Debug;

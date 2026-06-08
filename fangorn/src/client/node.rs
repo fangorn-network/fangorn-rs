@@ -1,6 +1,5 @@
 
-//! This node is meant for client applications who intent to encrypt/decrypt data
-//! against Fangorn. 
+//! This node is meant for client applications to encrypt/decrypt data against Fangorn. 
 //! For encryption, this node provides the ability to write to the shared docstore for ciphertext storage.
 //! For decryption, it allows ciphertexts to be fetched as well as for the collection of partial decryptions.
 //!

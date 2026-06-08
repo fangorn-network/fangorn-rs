@@ -22,7 +22,7 @@ use tokio::sync::{Mutex, RwLock};
 use crate::backend::{SubstrateBackend, iroh::IrohBackend};
 use crate::node::node::*;
 use crate::gadget::{GadgetRegistry, PasswordGadget, Psp22Gadget, Sr25519Gadget};
-use crate::pool::{contract_pool::*, pool::*, watcher::*};
+use crate::pool::{ink_contract_pool::*, pool::*, watcher::*};
 use crate::storage::{
     IntentStore, SharedStore, contract_store::ContractIntentStore, iroh_docstore::IrohDocStore,
 };
@@ -30,14 +30,23 @@ use crate::types::*;
 
 /// Configuration for starting a full node service
 pub struct ServiceConfig {
+    // port used for p2p conns
     pub bind_port: u16,
+    // external rpc port
     pub rpc_port: u16,
+    // node index within the group
     pub index: usize,
+    // if true, then act as bootstrap 
+    // note: incurs extra messaging overhead, generates a new doc ticket
     pub is_bootstrap: bool,
     // ignored if is_bootstrap
     pub ticket: Option<String>,
+    // well-known bootstrap nodes
     pub bootstrap_peers: Option<Vec<EndpointAddr>>,
+    // registry contracts
+    // the predicate registry for reading intent
     pub predicate_registry_contract_addr: String,
+    // request pool for reading requests + submitting work
     pub request_pool_contract_addr: String,
 }
 
@@ -47,7 +56,7 @@ impl ServiceConfig {
         pubkey: Option<String>,
         ip: Option<String>,
     ) -> Option<Vec<EndpointAddr>> {
-        // TODO: error handling
+        // TODO: error handling!
         if let (Some(pubkey_str), Some(ip_str)) = (pubkey, ip) {
             let pubkey = IrohPublicKey::from_str(&pubkey_str).ok().unwrap();
             let socket: SocketAddr = ip_str.parse().ok().unwrap();
@@ -100,10 +109,20 @@ pub async fn build_full_service<C: Pairing>(
     .unwrap();
 
     let iroh_backend = IrohBackend::new(node.clone());
-    let substrate_backend =
-        Arc::new(SubstrateBackend::new(crate::WS_URL.to_string(), vault_config).await?);
 
-    // setup gadget registry
+    // TODO: replace the substrate backend with something else? 
+    // or should we stand up a standalone substrate chain?
+    // e.g. should Fangorn Network be....real?!?
+    // I don't want to support all that infra tbh
+    // but if each of these nodes can itself be a validator, then it works... 
+    let substrate_backend =
+        Arc::new(SubstrateBackend::new(
+            crate::WS_URL.to_string(), 
+            vault_config
+        ).await?);
+
+    // setup gadget registry with default gadgets
+    // TODO: there should be some kind of config.yml for this
     let mut gadget_registry = GadgetRegistry::new();
     gadget_registry.register(PasswordGadget {});
     gadget_registry.register(Psp22Gadget::new(substrate_backend.clone()));
@@ -111,12 +130,14 @@ pub async fn build_full_service<C: Pairing>(
 
     // setup storage
     let doc_store = IrohDocStore::new(node.clone(), &ticket, Arc::new(iroh_backend)).await;
+    // todo: migrate from ink! to solana program? stylus contract? something else?
+    // realistically, this needs to also be configurable I think
     let intent_store = ContractIntentStore::new(
         config.predicate_registry_contract_addr.to_string(),
         substrate_backend.clone(),
     );
 
-    // decryption request pool
+    // in-mem decryption request pool
     let pool = Arc::new(RwLock::new(InkContractPool::new(
         config.request_pool_contract_addr.clone(),
         substrate_backend,
@@ -144,7 +165,7 @@ pub async fn build_full_service<C: Pairing>(
             .unwrap();
     }
 
-    // wait for everything to synced
+    // wait for everything to sync              
     thread::sleep(Duration::from_secs(1));
 
     // publish our own hint

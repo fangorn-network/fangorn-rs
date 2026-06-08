@@ -9,9 +9,18 @@ edition = "2024"
 [workspace]
 resolver = "2"
 
-members = ["fangorn", "quickbeam", "roots",
-# "entmoot", 
-"contract/predicate-registry", "contract/pool", "contract/psp22"]
+members = [
+    "fangorn", 
+    "quickbeam", 
+    "roots",
+    # "entmoot", 
+    "contract/predicate-registry",
+    "contract/pool",
+    "contract/psp22",
+    "contract",
+    "contracts/predicate-registry",
+    "contracts/pool"
+]
 
 [workspace.dependencies]
 async-trait = "0.1.89"
@@ -33,7 +42,7 @@ n0-future = "0.1.2"
 public-ip = "0.2"
 local-ip-address = "0.6.5"
 
-#crypto
+# crypto
 silent-threshold-encryption = { git = "https://github.com/driemworks/silent-threshold-encryption.git", branch = "dev", default-features = false }
 ark-serialize = "0.5.0"
 ark-std = "0.5.0"
